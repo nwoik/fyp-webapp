@@ -1,0 +1,36 @@
+body {
+    background-color: #121212;
+    /* position: relative; */
+}
+
+video {
+    background-color: black;
+    display: block;
+    position: relative;
+    width: 33.3%;
+    border: solid 2px white;
+    margin: auto;
+}
+
+.camera {
+    text-align: center;
+    display: block;
+}
+
+nav {
+    background-color: #181818;
+    color: aliceblue;
+    padding: 1em;
+
+}
+
+nav a {
+    padding: 1em;
+    background-color: #383838;
+}
+
+nav a:hover {
+    background-color: white;
+    color: #000;
+    cursor: pointer;
+}
