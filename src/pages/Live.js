@@ -1,6 +1,6 @@
 import React, {useRef, useEffect, useState} from "react";
 
-function Home() {
+function Live() {
   const [videoDevice, setVideoDevice] = useState(null);
   const [videoDevices, setVideoDevices] = useState([]);
   const videoRef = useRef(null);
@@ -62,4 +62,4 @@ function Home() {
   )
 }
 
-export default Home;
+export default Live;
