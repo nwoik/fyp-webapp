@@ -5,16 +5,23 @@ body {
 
 video {
     background-color: black;
-    display: block;
-    position: relative;
-    width: 33.3%;
-    border: solid 2px white;
-    margin: auto;
+    text-align: center;
+    width: 100%;
 }
 
-.camera {
+.video {
+    width: 70%;
     text-align: center;
-    display: block;
+    margin: auto;
+
+}
+
+.camera-tab {
+    width: 50%;
+    border: solid 2px white;
+    background-color: #000;
+    text-align: center;
+
 }
 
 nav {
@@ -27,10 +34,77 @@ nav {
 nav a {
     padding: 1em;
     background-color: #383838;
+    text-decoration: none;
 }
 
 nav a:hover {
     background-color: white;
     color: #000;
+    cursor: pointer;
+}
+
+select {
+    font-size: 1em;
+    position: center;
+    width: 100%;
+}
+
+.VideoPage {
+    background-color: #000;
+    width: 50%;
+    height: 100%;
+    margin-left: 50%;
+    position: fixed;
+    background-size: cover;
+    background-image: url("../res/Screenshot (1628).png");
+}
+
+.VideoPage a {
+    text-align: center;
+    text-decoration: none;
+    position: relative;
+    top: calc(50% - 2em);
+    color: aliceblue;
+    width: 50%;
+    margin: auto;
+    padding: 1em;
+    border: solid 2px white;
+    background-color: rgba(0, 0, 0, .4);
+
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.VideoPage h1:hover {
+    cursor: pointer;
+}
+
+.LivePage {
+    background-color: white;
+    background-image: url("../res/Screenshot (1624).png");
+    width: 50%;
+    height: 100%;
+    position: fixed;
+}
+
+.LivePage a {
+    text-align: center;
+    text-decoration: none;
+    position: relative;
+    top: calc(50% - 2em);
+    color: aliceblue;
+    width: 50%;
+    margin: auto;
+    padding: 1em;
+    border: solid 2px white;
+    background-color: rgba(0, 0, 0, .4);
+
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.LivePage h1:hover {
     cursor: pointer;
 }
