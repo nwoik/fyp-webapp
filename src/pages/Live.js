@@ -1,4 +1,6 @@
 import React, {useRef, useEffect, useState} from "react";
+import { noteFrequencies } from "./notes";
+import GuitarTuner from "./GuitarTuner";
 
 function Live() {
   const [videoDevice, setVideoDevice] = useState(null);
@@ -12,6 +14,16 @@ function Live() {
   const audioRef = useRef(null);
   const [audioViewDrop, setAudioViewDrop] = useState(false);
   const [audioDeviceId, setAudioDeviceId] = useState(null);
+
+  const [audioPlayback, setAudioPlayback] = useState(false);
+  const playbackButtonRef = useRef(null);
+
+  const canvasRef = useRef(null);
+
+  const [note, setNote] = useState('');
+  const [frequency, setFrequency] = useState('');
+
+  
 
   function setVideo(e) {
     e.preventDefault();
@@ -61,6 +73,11 @@ function Live() {
     setAudioDeviceId(e.target.value);
   }
 
+  function setPlayback() {
+    setAudioPlayback(!audioPlayback);
+    console.log(audioPlayback);
+  }
+
   function getAudioInputs() {
     navigator.mediaDevices.enumerateDevices()
       .then((devices) => {
@@ -79,15 +96,60 @@ function Live() {
   }
 
   function getAudio() {
+    const canvas = canvasRef.current;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+
     if (!audioDeviceId) {
       getAudioInputs();
       return
     }
+
     navigator.mediaDevices.getUserMedia({audio: {deviceId:audioDeviceId}, video:false})
       .then(stream => {
         setAudioDevice(audioRef.current);
         audioDevice.srcObject = stream;
-        audioDevice.play();
+        if (audioPlayback === true) {
+          audioDevice.play();
+        }
+
+        const source = audioCtx.createMediaStreamSource(audioDevice.srcObject);
+        source.connect(analyser);
+
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteFrequencyData(dataArray);
+        setFrequency(dataArray.indexOf(Math.max(...dataArray)))
+
+        const canvasCtx = canvas.getContext('2d');
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+
+        const draw = () => {
+          requestAnimationFrame(draw);
+
+          analyser.getByteFrequencyData(dataArray);
+
+          canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+          canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          const barWidth = (WIDTH / bufferLength) * 2.5;
+          let barHeight;
+          let x = 0;
+
+          for(let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i];
+
+            canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+            canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+
+            x += barWidth + 1;
+          }
+        }
+
+        draw();
+
       })
       .catch(err => {
         console.error(err);
@@ -97,6 +159,7 @@ function Live() {
 
   useEffect(() => {
     getAudio();
+    console.log(frequency);
   })
 
   return (
@@ -104,7 +167,7 @@ function Live() {
     <nav>
       <a href="/">Home</a>
     </nav>
-    <div className='camera-tab'>
+    <div className='camera-div'>
       <div className="video">
         <video ref={videoRef}></video>
         {videoViewDrop && 
@@ -114,12 +177,17 @@ function Live() {
         }
       </div>
     </div>
-    <div>
+    <div className="audio-div">
+      <canvas ref={canvasRef}></canvas>
+      <div className="audio-test">
+        <button ref={playbackButtonRef} onClick={setPlayback}>Audio Playback</button>
+        {audioPlayback && <label>It's recommended that this is off while playing</label>}
+      </div>
+      
       {audioViewDrop &&
       <select name="Audio Devices" onChange={setAudio} onLoad={setAudio}>
         {audioDevices.map((a) => (<option value={a.deviceId}>{a.label}</option>))}
-      </select>
-      }
+      </select>}
       <audio ref={audioRef}></audio>
     </div>
   </div>
