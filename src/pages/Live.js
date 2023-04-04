@@ -20,6 +20,8 @@ function Live() {
 
   const canvasRef = useRef(null);
 
+  const analyserRef = useRef(null);
+
   const [note, setNote] = useState('');
   const [frequency, setFrequency] = useState('');
 
@@ -66,7 +68,7 @@ function Live() {
 
   useEffect(() => {
     getVideo();
-  })
+  }, [videoDevice, videoDeviceId])
 
   function setAudio(e) {
     e.preventDefault();
@@ -115,6 +117,7 @@ function Live() {
 
         const source = audioCtx.createMediaStreamSource(audioDevice.srcObject);
         source.connect(analyser);
+        analyserRef.current = analyser;
 
         analyser.fftSize = 2048;
         const bufferLength = analyser.frequencyBinCount;
@@ -159,8 +162,7 @@ function Live() {
 
   useEffect(() => {
     getAudio();
-    console.log(frequency);
-  })
+  }, [frequency, canvasRef, audioDevice, audioDeviceId, audioRef, audioPlayback])
 
   return (
   <div onLoad={setVideo} className='App'>
@@ -183,6 +185,7 @@ function Live() {
         <button ref={playbackButtonRef} onClick={setPlayback}>Audio Playback</button>
         {audioPlayback && <label>It's recommended that this is off while playing</label>}
       </div>
+      <p>{frequency}</p>
       
       {audioViewDrop &&
       <select name="Audio Devices" onChange={setAudio} onLoad={setAudio}>
