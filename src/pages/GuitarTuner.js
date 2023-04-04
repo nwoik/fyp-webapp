@@ -5,7 +5,6 @@ import { noteFrequencies} from "./notes";
 const GuitarTuner = () => {
   const audioRef = useRef(null);
   const canvasRef = useRef(null);
-  const analyserRef = useRef(null);
 
   const [note, setNote] = useState('');
   const [frequency, setFrequency] = useState('');
@@ -26,9 +25,7 @@ const GuitarTuner = () => {
         const analyserNode = audioCtx.createAnalyser();
         analyserNode.fftSize = 2048; // Set the FFT size to 2048
         sourceNode.connect(analyserNode);
-        console.log(analyserNode);
 
-        analyserNode.connect(audioCtx.destination);
         analyserRef.current = analyserNode; // Save a reference to the analyserNode for later use
         console.log(analyserNode);
         // audio.play();
@@ -39,7 +36,7 @@ const GuitarTuner = () => {
   };
 
   const getNoteFromFrequency = (freq) => {
-    const closestNote = noteFrequencies.reduce((prev, curr) => {
+    const closestNote = noteFreqs.reduce((prev, curr) => {
       return (Math.abs(curr.frequency - freq) < Math.abs(prev.frequency - freq) ? curr : prev);
     });
     // console.log(closestNote.note);
@@ -57,7 +54,7 @@ const GuitarTuner = () => {
       const freq = maxFrequency * (audioRef.current.duration / bufferLength);
       const note = getNoteFromFrequency(maxFrequency);
       setNote(note);
-      setFrequency(maxFrequency);
+      setFrequency(freq);
     }
     requestAnimationFrame(drawFrequencyData);
   };
