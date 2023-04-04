@@ -5,6 +5,7 @@ import { noteFrequencies} from "./notes";
 const GuitarTuner = () => {
   const audioRef = useRef(null);
   const canvasRef = useRef(null);
+  const analyserRef = useRef(null);
 
   const [note, setNote] = useState('');
   const [frequency, setFrequency] = useState('');

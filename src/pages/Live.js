@@ -21,7 +21,10 @@ function Live() {
   const canvasRef = useRef(null);
 
   const analyserRef = useRef(null);
+  const audioCtx = new AudioContext();
+  const analyserNode = audioCtx.createAnalyser();
 
+  const noteFreqs = noteFrequencies;
   const [note, setNote] = useState('');
   const [frequency, setFrequency] = useState('');
 
@@ -68,7 +71,7 @@ function Live() {
 
   useEffect(() => {
     getVideo();
-  }, [videoDevice, videoDeviceId])
+  })
 
   function setAudio(e) {
     e.preventDefault();
@@ -77,7 +80,6 @@ function Live() {
 
   function setPlayback() {
     setAudioPlayback(!audioPlayback);
-    console.log(audioPlayback);
   }
 
   function getAudioInputs() {
@@ -98,10 +100,6 @@ function Live() {
   }
 
   function getAudio() {
-    const canvas = canvasRef.current;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = audioCtx.createAnalyser();
-
     if (!audioDeviceId) {
       getAudioInputs();
       return
@@ -109,50 +107,18 @@ function Live() {
 
     navigator.mediaDevices.getUserMedia({audio: {deviceId:audioDeviceId}, video:false})
       .then(stream => {
-        setAudioDevice(audioRef.current);
+        let audio = audioRef.current
+        setAudioDevice(audio);
         audioDevice.srcObject = stream;
+
+        const sourceNode = audioCtx.createMediaStreamSource(audioDevice.srcObject);
+        
+        analyserNode.fftSize = 2048;
+        sourceNode.connect(analyserNode);
+
         if (audioPlayback === true) {
           audioDevice.play();
         }
-
-        const source = audioCtx.createMediaStreamSource(audioDevice.srcObject);
-        source.connect(analyser);
-        analyserRef.current = analyser;
-
-        analyser.fftSize = 2048;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        analyser.getByteFrequencyData(dataArray);
-        setFrequency(dataArray.indexOf(Math.max(...dataArray)))
-
-        const canvasCtx = canvas.getContext('2d');
-        const WIDTH = canvas.width;
-        const HEIGHT = canvas.height;
-
-        const draw = () => {
-          requestAnimationFrame(draw);
-
-          analyser.getByteFrequencyData(dataArray);
-
-          canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-          canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-
-          const barWidth = (WIDTH / bufferLength) * 2.5;
-          let barHeight;
-          let x = 0;
-
-          for(let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i];
-
-            canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
-            canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
-
-            x += barWidth + 1;
-          }
-        }
-
-        draw();
-
       })
       .catch(err => {
         console.error(err);
@@ -162,7 +128,44 @@ function Live() {
 
   useEffect(() => {
     getAudio();
-  }, [frequency, canvasRef, audioDevice, audioDeviceId, audioRef, audioPlayback])
+  })
+
+  function monitorAudio() {
+    if (analyserNode) { 
+      const canvas = canvasRef.current;
+      const bufferLength = analyserNode.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const canvasCtx = canvas.getContext('2d');
+      const WIDTH = canvas.width;
+      const HEIGHT = canvas.height;
+
+      const draw = () => {
+        requestAnimationFrame(draw);
+
+        analyserNode.getByteFrequencyData(dataArray);
+        canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+        const barWidth = (WIDTH / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for(let i = 0; i < bufferLength; i++) {
+          barHeight = dataArray[i];
+
+          canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+          canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+
+          x += barWidth + 1;
+        }
+      }
+      draw();
+    }
+  }
+
+  useEffect(() => {
+    monitorAudio();
+  })
 
   return (
   <div onLoad={setVideo} className='App'>
@@ -179,13 +182,14 @@ function Live() {
         }
       </div>
     </div>
-    <div className="audio-div">
+    <div onLoad={getAudio} className="audio-div">
       <canvas ref={canvasRef}></canvas>
       <div className="audio-test">
         <button ref={playbackButtonRef} onClick={setPlayback}>Audio Playback</button>
         {audioPlayback && <label>It's recommended that this is off while playing</label>}
       </div>
-      <p>{frequency}</p>
+      <p>{frequency} {note}</p>
+      <GuitarTuner/>
       
       {audioViewDrop &&
       <select name="Audio Devices" onChange={setAudio} onLoad={setAudio}>
