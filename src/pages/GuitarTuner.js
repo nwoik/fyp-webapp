@@ -52,10 +52,10 @@ const GuitarTuner = () => {
       const dataArray = new Uint8Array(bufferLength);
       analyserNode.getByteFrequencyData(dataArray);
       const maxFrequency = dataArray.indexOf(Math.max(...dataArray));
-      const freq = maxFrequency * (audioRef.current.duration / bufferLength);
+      // const freq = maxFrequency * (bufferLength/220);
       const note = getNoteFromFrequency(maxFrequency);
       setNote(note);
-      setFrequency(freq);
+      setFrequency(maxFrequency);
     }
     requestAnimationFrame(drawFrequencyData);
   };
